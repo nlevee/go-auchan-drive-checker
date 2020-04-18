@@ -1,8 +1,10 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -26,22 +28,29 @@ var done = make(chan bool)
 var currentState = make(map[string]*drivestate.DriveState)
 
 func addDriveHandler(driveId string) {
-	currentState[driveId] = &drivestate.DriveState{
-		IsActive: false,
-		Dispo:    "",
-	}
-	config := auchan.DriveConfig{
-		DriveId: driveId,
-		State:   currentState[driveId],
-	}
+	config := auchan.NewConfig(driveId)
+	currentState[driveId] = config.State
 	go auchan.GetDriveState(config, tick, done)
 }
 
 func main() {
-	auchanDriveId := "930"
-	addDriveHandler(auchanDriveId)
+	auchanDriveId := flag.String("id", "", "The drive Id")
+	listenHost := flag.String("host", "0.0.0.0", "Start a server and listen on this host")
+	listenPort := flag.String("port", "", "Start a server and listen on this port")
+	flag.Parse()
 
-	r := mux.NewRouter()
-	r.HandleFunc("/", handle(currentState[auchanDriveId])).Methods(http.MethodGet)
-	log.Fatal(http.ListenAndServe(":8089", r))
+	if *auchanDriveId == "" {
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
+
+	if *listenPort != "" && *listenHost != "" {
+		addDriveHandler(*auchanDriveId)
+		r := mux.NewRouter()
+		r.HandleFunc("/", handle(currentState[*auchanDriveId])).Methods(http.MethodGet)
+		log.Fatal(http.ListenAndServe(*listenHost+":"+*listenPort, r))
+	} else {
+		config := auchan.NewConfig(*auchanDriveId)
+		auchan.GetDriveState(config, tick, done)
+	}
 }

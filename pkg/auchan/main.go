@@ -18,7 +18,23 @@ type DriveConfig struct {
 	State   *drivestate.DriveState
 }
 
-func loadDriveState(driveUrl string, currentState *drivestate.DriveState) (hasChanged bool, err error) {
+func NewConfig(driveId string) DriveConfig {
+	state := &drivestate.DriveState{
+		IsActive: false,
+		Dispo:    "",
+	}
+	return DriveConfig{
+		DriveId: driveId,
+		State:   state,
+	}
+}
+
+func loadDriveState(config DriveConfig) (hasChanged bool, err error) {
+	driveUrl := auchanDriveUrl + config.DriveId
+	currentState := config.State
+
+	log.Printf("Request uri : %v", driveUrl)
+
 	doc, err := utils.LoadURL(driveUrl)
 	if err != nil {
 		return false, err
@@ -40,14 +56,11 @@ func loadDriveState(driveUrl string, currentState *drivestate.DriveState) (hasCh
 }
 
 func GetDriveState(config DriveConfig, tick *time.Ticker, done chan bool) {
-	driveUrl := auchanDriveUrl + config.DriveId
-	currentState := config.State
 
 	log.Printf("Démarrage du check de créneau Auchan Drive %v", config.DriveId)
-	log.Printf("Request uri : %v", driveUrl)
 
 	// premier appel sans attendre le premier tick
-	if _, err := loadDriveState(driveUrl, currentState); err != nil {
+	if _, err := loadDriveState(config); err != nil {
 		log.Print(err)
 	}
 
@@ -55,7 +68,7 @@ func GetDriveState(config DriveConfig, tick *time.Ticker, done chan bool) {
 		select {
 		case <-tick.C:
 			// a chaque tick du timer on lance une recherche de state
-			if _, err := loadDriveState(driveUrl, currentState); err != nil {
+			if _, err := loadDriveState(config); err != nil {
 				log.Print(err)
 			}
 		case <-done:
@@ -63,6 +76,5 @@ func GetDriveState(config DriveConfig, tick *time.Ticker, done chan bool) {
 			tick.Stop()
 			return
 		}
-
 	}
 }
