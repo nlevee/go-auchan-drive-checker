@@ -1,3 +1,4 @@
+// Package auchan provides function to get auchan drive disponibility
 package auchan
 
 import (
@@ -18,6 +19,7 @@ type DriveConfig struct {
 	State   *drivestate.DriveState
 }
 
+// Create a new Drive config with driveId
 func NewConfig(driveId string) DriveConfig {
 	state := &drivestate.DriveState{
 		IsActive: false,
