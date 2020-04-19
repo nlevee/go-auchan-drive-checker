@@ -9,8 +9,8 @@ import (
 	"golang.org/x/net/publicsuffix"
 )
 
-// Override LoadURL to keep cookie with redirect
-func LoadURL(url string) (*html.Node, error) {
+// LoadHTMLURL to keep cookie with redirect
+func LoadHTMLURL(url string) (*html.Node, error) {
 	options := cookiejar.Options{
 		PublicSuffixList: publicsuffix.List,
 	}
