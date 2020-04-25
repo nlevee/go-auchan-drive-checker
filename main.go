@@ -7,6 +7,8 @@ import (
 
 	"github.com/nlevee/go-auchan-drive-checker/internal/api"
 	"github.com/nlevee/go-auchan-drive-checker/pkg/auchan"
+
+	_ "github.com/joho/godotenv/autoload"
 )
 
 func main() {
