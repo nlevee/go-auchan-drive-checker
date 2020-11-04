@@ -1,5 +1,7 @@
 # go-auchan-drive-checker
 
+* HS suite à la sortie du nouveau site *
+
 Ce script a pour objet la recherche de créneau dans les Drives Auchan.
 
 ## Usage
